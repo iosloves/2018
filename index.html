@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>鬼魂打字</title>
+		<style type="text/css">
+			body{
+				background: url(img/bk.jpg) no-repeat;
+				background-size: cover;
+			}		
+			img{
+				cursor: pointer;
+			}
+			#welcomeUI{
+				text-align: center;
+			}	
+			.logo img{
+				width:690px;
+				height: 320px;
+			}
+			.welomeBtn img{
+				width: 300px;
+				height: 180px;
+				cursor: pointer;
+			}
+			.backBtn{
+				position: fixed;
+				left: 30px;
+				bottom: 30px;
+			}
+			.backBtn img{
+				width: 150px;
+				height: 120px;
+				cursor: pointer;
+			}
+			.optionBtn{
+				position: fixed;
+				right:90px ;
+				bottom: 30px;
+				width: 150px;
+			}
+			.optionBtn img{
+				width: 150px;
+				height: 120px;
+				cursor: pointer;
+			}
+			.ghost{
+				text-align: center;
+				position: absolute;
+				background: url(img/5.png) no-repeat;
+				bottom: 0px;
+				left:100px;
+				width:120px;
+				height: 70px;	
+				color: red;		
+				padding-top: 64px;	
+				padding-left: 14px;
+				z-index: -100;
+			}
+			#pauseDiv{
+				background: url(img/pausePanelBg.png) no-repeat;
+				width: 350px;
+				height: 370px;
+				position: absolute;
+			}
+			#pauseDiv img{
+				width: 350px;
+				height: 112px;;
+				z-index: 9024;
+				cursor: pointer;
+			}
+			.resume{
+				margin-top: 80px;
+			}
+			#settingBtn{
+				text-align: center;
+				background: url(img/optionPanelBg.png) no-repeat;
+				width: 350px;
+				height: 370px;
+				position: absolute;
+			}
+			.speedSetting{
+				margin-top: 75px;
+			}
+			.timeBtn img{
+				width: 120px;
+				height: 120px;
+			}
+			.countdown{
+				position:absolute;
+				display:none;
+				margin-right:100px;
+				width:20px;
+				height:20px;
+				font-size:35px;
+				font-weight:bold;
+				color:#FFF;
+			}
+			#scoreDiv{
+				position:absolute;
+				display:none;
+				color:#FFF;
+				margin-top:50px;
+				font-size:12px;
+				font-weight:bold;
+			}
+		</style>
+		<script type="text/javascript">
+			var codes = "QWERTYUIOPASDFGHJKLZXCVBNM";
+			var ghostCreateInterval,ghostMoveInterval,countdownID;
+			var level = 18;
+			var realLevel = 18;
+			var createSpeed = 1000;
+			var moveSpeed = 200;
+			var time;
+			var initTime = 60;
+			var score = 0;
+			var enterKeyCount =0;
+			/*window.onload=startGame;*/
+			var ghostArr = [];
+			function startGame(){
+				var welcomeUI = document.getElementById("welcomeUI");
+				welcomeUI.style.display="none";
+				var gameUI = document.getElementById("gameUI");
+				gameUI.style.display="block";
+				ghostCreateInterval = setInterval(createGhost,createSpeed);
+				ghostMoveInterval = setInterval(ghostMove,moveSpeed);
+				
+				//产生倒计时div
+				var countdown =document.createElement("div");
+				gameUI.appendChild(countdown );
+				countdown.className="countdown";
+				countdown.id="countdown";
+				countdown.style.display="block";
+				var scoreDiv =document.createElement("div");
+				gameUI.appendChild(scoreDiv);
+				scoreDiv.id = "scoreDiv";
+				scoreDiv.style.display="block";
+				time = initTime;
+				score = 0;
+				enterKeyCount = 0;
+				countdownID=setInterval(refreshTime,1000);
+				
+			}
+			//游戏倒计时
+			function refreshTime(){
+				var countdown=document.getElementById("countdown");
+				var scoreDiv=document.getElementById("scoreDiv");
+				countdown.innerHTML=time--;
+				scoreDiv.innerHTML = "\n得分="+score+"\n正确率:"+(score*100/(enterKeyCount||1)).toFixed(2)+"%";
+				if(time<0){
+					document.getElementById("ghostPanel").innerHTML="";
+					ghostArr.splice(0,ghostArr.length);
+					clearInterval(ghostCreateInterval);
+					clearInterval(ghostMoveInterval);
+					clearInterval(countdownID);
+					//重置计时器div
+				   alert("时间到！！！"+"\n"+"总计得分="+score+"\n正确率:"+(score*100/(enterKeyCount||1)).toFixed(2)+"%");
+				   document.getElementById("countdown").innerHTML=initTime;
+				   backFn();
+			    } 
+			}
+			function createGhost(){
+				var ghostEl = document.createElement("div");
+				ghostEl.className = "ghost";
+				ghostEl.innerHTML = codes.charAt(parseInt(Math.random()*codes.length));
+				var clientWidth = document.documentElement.clientWidth;
+				var xPosition =110+ (Math.random()*(clientWidth-450));
+				ghostEl.style.left = xPosition+"px";
+				var ghostPanel = document.getElementById("ghostPanel");
+				ghostPanel.appendChild(ghostEl);
+				ghostArr.push(ghostEl);
+			}
+			function ghostMove(){
+				var clientHeight = document.documentElement.clientHeight;
+				var ghostPanel = document.getElementById("ghostPanel");
+				for(var i=0;i<ghostArr.length;i++){
+					var ghost = ghostArr[i];
+					var ghostBottom = parseInt(ghost.style.bottom)||5;
+					if(ghostBottom<clientHeight){
+						ghost.style.bottom = (ghostBottom+10)+"px";
+					}else{
+						ghostPanel.removeChild(ghost);
+						ghostArr.splice(i,1);
+					}
+				}
+			}
+			window.onkeydown=key;
+			function key(event){
+				enterKeyCount++;
+				var keyCode = event.keyCode;
+				var keyWord = String.fromCharCode(keyCode);
+				for(var i=0;i<ghostArr.length;i++){
+					var ghost = ghostArr[i];
+					if(keyWord == ghost.innerHTML){
+						score++;
+						ghostArr.splice(i,1);
+						ghost.style.background = "url(img/51.png) no-repeat";
+						setTimeout(function(){
+							ghostPanel.removeChild(ghost);
+						},200)
+						break;
+					}
+				}
+			}
+			function backFn(){
+				var welcomeUI = document.getElementById("welcomeUI");
+				welcomeUI.style.display="block";
+				var gameUI = document.getElementById("gameUI");
+				gameUI.style.display="none";
+				clearInterval(ghostCreateInterval);
+				clearInterval(ghostMoveInterval);
+				clearInterval(countdownID);
+				ghostArr.splice(0,ghostArr.length);
+				document.getElementById("ghostPanel").innerHTML = "";
+			}
+			function pauseFn(){
+				window.onkeydown="";
+				/*<div id="pauseDiv" style="display: none">
+					<div class="resume">
+						<img src="img/36.png" onclick="resume()" />	
+					</div>
+					<div class="stop">
+						<img src="img/38.png" onclick="stopGame()" />		
+					</div>	
+				</div>
+				*/
+				var ghostPanel = document.getElementById("ghostPanel");
+				var pauseDiv = document.createElement("div");
+				pauseDiv.id = "pauseDiv";
+				var resumeDiv =  document.createElement("div");
+				resumeDiv.className = "resume";
+				var stopDiv =  document.createElement("div");
+				stopDiv.className = "stop";
+				var resumeImg =  document.createElement("img");
+				resumeImg.src = "img/36.png";
+				var stopImg =  document.createElement("img");
+				stopImg.src = "img/38.png";
+				pauseDiv.appendChild(resumeDiv);
+				pauseDiv.appendChild(stopDiv);
+				resumeDiv.appendChild(resumeImg);
+				stopDiv.appendChild(stopImg);
+				ghostPanel.appendChild(pauseDiv);
+				var clientHeight = document.documentElement.clientHeight;
+				var clientWidth = document.documentElement.clientWidth;
+				pauseDiv.style.left = (clientWidth-parseInt(pauseDiv.offsetWidth))/2+"px";
+				pauseDiv.style.top = (clientHeight-parseInt(pauseDiv.offsetHeight))/2+"px";
+				clearInterval(ghostCreateInterval);
+				clearInterval(ghostMoveInterval);
+				clearInterval(countdownID);
+				resumeImg.onclick = resume;
+				stopImg.onclick = stopGame;
+				
+			}
+			function resume(){
+				window.onkeydown=key;
+				var ghostPanel = document.getElementById("ghostPanel");
+				var pauseDiv = document.getElementById("pauseDiv");
+				ghostPanel.removeChild(pauseDiv);
+				ghostCreateInterval = setInterval(createGhost,createSpeed);
+				ghostMoveInterval = setInterval(ghostMove,moveSpeed);
+				countdownID=setInterval(refreshTime,1000);
+			}
+			function stopGame(){
+				backFn();
+			}
+			function settingFn(){
+				/*
+				 <div id="settingBtn" >
+					<div class="speedSetting">
+						<img src="img/33.png" />
+					</div>
+					<div class="speedBtn">
+						<img src="img/14.png" />
+						<img src="img/18.png" />
+						<img src="img/16.png" />
+					</div>
+					<div class="timeBtn">
+							<img src="img/40.png" />
+							<img src="img/42.png" />			
+					</div>
+				</div>
+				 */
+				window.onkeydown="";
+				var ghostPanel = document.getElementById("ghostPanel");
+				
+				var settingBtn = document.createElement("div");
+				settingBtn.id = "settingBtn";
+				
+				var speedSetting =  document.createElement("div");
+				speedSetting.className = "speedSetting";
+				var speedBtn =  document.createElement("div");
+				speedBtn.class = "speedBtn";
+				var timeBtn =  document.createElement("div");
+				timeBtn.class = "timeBtn";
+				
+				settingBtn.appendChild(speedSetting);
+				settingBtn.appendChild(speedBtn);
+				settingBtn.appendChild(timeBtn);
+				
+				
+				var speedSettingImg = document.createElement("img");
+				speedSettingImg.src = "img/33.png";
+				var leftImg = document.createElement("img");
+				leftImg.src = "img/14.png";
+				var levelImg = document.createElement("img");
+				levelImg.id = "leavelID";
+				levelImg.src = "img/"+level+".png";
+				var rightImg = document.createElement("img");
+				rightImg.src = "img/16.png";
+				var settingImg = document.createElement("img");
+				settingImg.src = "img/40.png";
+				var cancleImg = document.createElement("img");
+				cancleImg.src = "img/42.png";
+				
+				speedSetting.appendChild(speedSettingImg);
+				speedBtn.appendChild(leftImg);
+				speedBtn.appendChild(levelImg);
+				speedBtn.appendChild(rightImg);
+				timeBtn.appendChild(settingImg);
+				timeBtn.appendChild(cancleImg);
+				
+				var clientHeight = document.documentElement.clientHeight;
+				var clientWidth = document.documentElement.clientWidth;
+				
+				settingBtn.style.left = (clientWidth-350)/2+"px";
+				settingBtn.style.top = (clientHeight-370)/2+"px";
+				clearInterval(ghostCreateInterval);
+				clearInterval(ghostMoveInterval);
+				clearInterval(countdownID);
+
+				var ghostPanel = document.getElementById("ghostPanel");
+				ghostPanel.appendChild(settingBtn);
+				leftImg.onclick=leftFn;
+				rightImg.onclick = rightFn;
+				cancleImg.onclick = cancle;
+				settingImg.onclick = settingSpeedFn;
+			}
+			function leftFn(){
+				if(level>18){
+					var leavelImg = document.getElementById("leavelID");
+					level--;
+					leavelImg.src="img/"+level+".png";
+				}
+			}
+			function rightFn(){
+				if(level<20){
+					var leavelImg = document.getElementById("leavelID");
+					level++;
+					leavelImg.src="img/"+level+".png";
+				}
+			}
+			function cancle(){
+				var leavelImg = document.getElementById("leavelID");
+				level = realLevel;
+				leavelImg.src="img/"+level+".png";
+				
+				window.onkeydown=key;
+				var ghostPanel = document.getElementById("ghostPanel");
+				var settingBtn = document.getElementById("settingBtn");
+				ghostPanel.removeChild(settingBtn);
+				ghostCreateInterval = setInterval(createGhost,createSpeed);
+				ghostMoveInterval = setInterval(ghostMove,moveSpeed);
+				countdownID=setInterval(refreshTime,1000);
+			}
+			function settingSpeedFn(){
+				realLevel = level;
+				switch(realLevel){
+					case 18:createSpeed=1200;moveSpeed=250;break;
+					case 19:createSpeed=800;moveSpeed=180;break;
+					default:createSpeed=500;moveSpeed=100;break;
+				}
+				window.onkeydown=key;
+				var ghostPanel = document.getElementById("ghostPanel");
+				var settingBtn = document.getElementById("settingBtn");
+				ghostPanel.removeChild(settingBtn);
+				ghostCreateInterval = setInterval(createGhost,createSpeed);
+				ghostMoveInterval = setInterval(ghostMove,moveSpeed);
+				countdownID=setInterval(refreshTime,1000);
+			}
+		</script>
+	</head>
+	<body>
+		<!--欢迎页面 -->
+		<div id="welcomeUI" >
+			<div class="logo">
+				<img src="img/logo.png" />				
+			</div>
+			<div class="welomeBtn">
+				<img src="img/3.png" onclick="" onmouseover="this.src='img/4.png'" onmouseout="this.src='img/3.png'" />
+				<img src="img/1.png" onclick="startGame()" onmouseover="this.src='img/2.png'" onmouseout="this.src='img/1.png'" />
+			</div>
+		</div>
+		<div id="gameUI" style="display: none">
+			<div class="backBtn">
+				<img src="img/6.png" onclick="backFn()">				
+			</div>
+			<div id="ghostPanel">
+				
+			</div>
+			<div class="optionBtn">
+				<img src="img/10.png" onclick="pauseFn()" />
+				<img src="img/8.png" onclick = "settingFn()"/>
+			</div>
+		</div>
+	</body>
+</html>
